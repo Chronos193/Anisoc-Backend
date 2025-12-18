@@ -1,0 +1,21 @@
+# Environment & Virtual Envs
+.venv/
+env/
+venv/
+ENV/
+*.env         # Crucial: Protects your SECRET_KEY and DB credentials
+
+# Databases
+*.sqlite3     # Keeps your local test data out of the repo
+
+# Python / Django specific
+__pycache__/
+*.py[cod]
+*$py.class
+/static/      # Usually ignored if you use collectstatic
+/media/       # User-uploaded files should not be in Git
+
+# Poetry (Optional)
+# Most developers KEEP pyproject.toml and poetry.lock
+# But ignore the virtualenv poetry might create inside the project
+.venv/
