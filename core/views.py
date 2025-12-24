@@ -9,6 +9,7 @@ from .serializers import UserSerializer, CookieTokenObtainPairSerializer, TeamMe
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission, SAFE_METHODS
 from .models import TeamMember, Announcement, Tag, Event, FanArt, SeasonalReport, BlogPost, FanFiction, Chapter, Comment
 from django.db.models import Q
+from .pagination import FanFictionPagination
 
 
 
@@ -290,6 +291,7 @@ class BlogPostDetail(generics.RetrieveUpdateDestroyAPIView):
 class FanFictionListCreate(generics.ListCreateAPIView):
     queryset = FanFiction.objects.all()
     serializer_class = FanFictionSerializer
+    pagination_class = FanFictionPagination #For pagination purposes
 
     def get_permissions(self):
         if self.request.method == "POST":

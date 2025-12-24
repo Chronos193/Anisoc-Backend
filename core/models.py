@@ -63,7 +63,7 @@ class SeasonalReport(models.Model):
     title = models.CharField(max_length=200)
     season = models.CharField(max_length=50)  # Winter 2025
     description = models.TextField()
-    video_embed_url = models.URLField(blank=True, null=True)
+    poster_url = models.URLField(blank=True, null=True)
     published_at = models.DateTimeField()
 
     def __str__(self):
@@ -88,6 +88,7 @@ class FanFiction(models.Model):
     ]
 
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    front_page_url = models.URLField(blank=True, null=True)
     title = models.CharField(max_length=200)
     summary = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)

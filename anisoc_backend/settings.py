@@ -150,12 +150,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",  # react dev
+    "http://localhost:5173",
 ]
 
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+
 
