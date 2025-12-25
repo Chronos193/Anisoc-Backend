@@ -10,8 +10,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, B
 from .models import TeamMember, Announcement, Tag, Event, FanArt, SeasonalReport, BlogPost, FanFiction, Chapter, Comment
 from django.db.models import Q
 from .pagination import FanFictionPagination
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
+# Default permission class in global setting is IsAutheticated()
 
 # --------------------------------------------WARNING: THIS PART OF CODE IS FOR AUTH LOGIC AND VIEWS----------------------
 class CreateUserView(generics.CreateAPIView):
@@ -39,8 +42,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="access_token",
             value=str(access),
             httponly=True,
-            secure=False,  # True in production (HTTPS)
-            samesite="Lax",
+            secure=True,  # True in production (HTTPS)
+            samesite="None",
             max_age=15 * 60,
         )
 
@@ -49,8 +52,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=False,  # True in production
-            samesite="Lax",
+            secure=True,  # True in production
+            samesite="None",
             max_age=7 * 24 * 60 * 60,
         )
 
@@ -86,8 +89,8 @@ class CookieTokenRefreshView(APIView):
             key="access_token",
             value=str(new_access),
             httponly=True,
-            secure=False,   # True in production
-            samesite="Lax",
+            secure=True,   # True in production
+            samesite="None",
             max_age=15 * 60,
         )
 
@@ -96,35 +99,32 @@ class CookieTokenRefreshView(APIView):
             key="refresh_token",
             value=str(new_refresh),
             httponly=True,
-            secure=False,   # True in production
-            samesite="Lax",
+            secure=True,   # True in production
+            samesite="None",
             max_age=7 * 24 * 60 * 60,
         )
 
         return response
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
 
         if refresh_token:
             try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
+                RefreshToken(refresh_token).blacklist()
             except TokenError:
-                # Token already invalid or expired
                 pass
 
-        response = Response(
-            {"detail": "Logged out"},
-            status=status.HTTP_200_OK
-        )
-
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-
+        response = Response({"detail": "Logged out"}, status=200)
+        response.delete_cookie("access_token", path="/", samesite="None")
+        response.delete_cookie("refresh_token", path="/", samesite="None")
         return response
+
 
 
 #------------------------------------FOR FRONTEND TO CHECK IF TOKEN IS VALID OR NOT-------------------------------------------
@@ -135,7 +135,7 @@ class MeView(APIView):
         return Response({
             "id": request.user.id,
             "email": request.user.email,
-            "name": request.user.name,
+            "name": request.user.username,
         })
 
 # The name is confusing so let me clearly document what this does. (Don't blame me after making so many views I am out of names.)
@@ -274,7 +274,7 @@ class BlogPostListCreate(generics.ListCreateAPIView):
         serializer.save(author=self.request.user)
 
 
-# Will be reused in FanFiction Views
+
 class IsAuthorOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -288,6 +288,13 @@ class BlogPostDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 # Fanfiction Views (Only user who are verified can post and all users can read)
+
+class IsFanFictionAuthorOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.author == request.user
+
 class FanFictionListCreate(generics.ListCreateAPIView):
     queryset = FanFiction.objects.all()
     serializer_class = FanFictionSerializer
@@ -304,10 +311,10 @@ class FanFictionListCreate(generics.ListCreateAPIView):
 class FanFictionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = FanFiction.objects.all()
     serializer_class = FanFictionSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [IsFanFictionAuthorOrReadOnly]
 
 # Chapter Views(Only user who are verified can post and all users can read)
-class IsFanFictionAuthorOrReadOnly(BasePermission):
+class IsChapterAuthorOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         # Read is allowed to everyone
         if request.method in SAFE_METHODS:
@@ -342,7 +349,7 @@ class ChapterListCreate(generics.ListCreateAPIView):
 class ChapterDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Chapter.objects.all()
     serializer_class = ChapterSerializer
-    permission_classes = [IsFanFictionAuthorOrReadOnly]
+    permission_classes = [IsChapterAuthorOrReadOnly]
 
 
 
