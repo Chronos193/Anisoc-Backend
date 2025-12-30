@@ -176,3 +176,37 @@ urlpatterns = [
     ),
 
 ]
+
+# ------------------------------------------------------Urls for Password Reset------------------------------------
+from django.contrib.auth import views as auth_views
+
+urlpatterns += [
+    # Request password reset (email input)
+    path(
+        "auth/password-reset/",
+        auth_views.PasswordResetView.as_view(),
+        name="password_reset"
+    ),
+
+    # Email sent confirmation
+    path(
+        "auth/password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(),
+        name="password_reset_done"
+    ),
+
+    # Reset link from email
+    path(
+        "auth/reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm"
+    ),
+
+    # Password reset complete
+    path(
+        "auth/reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(),
+        name="password_reset_complete"
+    ),
+]
+# ---------------------------------------------------------------------------------------------------------------

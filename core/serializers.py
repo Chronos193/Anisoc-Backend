@@ -135,10 +135,28 @@ class FanFictionSerializer(serializers.ModelSerializer):
         fanfic.tags.set(tag_ids)
         return fanfic
 
+    def update(self, instance, validated_data):
+        tag_ids = validated_data.pop("tag_ids", None)
+
+        for attr, value in validated_data.items():
+            if attr == "front_page_url" and value == "":
+                value = None
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        if tag_ids is not None:
+            instance.tags.set(tag_ids)
+
+        return instance
+
+
+
 class ChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chapter
         fields = "__all__"
+        read_only_fields = ["fanfiction", "published_at", "chapter_number"]
 
 class CommentSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(

@@ -12,6 +12,7 @@ from django.db.models import Q
 from .pagination import FanFictionPagination
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.filters import SearchFilter
 
 
 # Default permission class in global setting is IsAutheticated()
@@ -296,9 +297,17 @@ class IsFanFictionAuthorOrReadOnly(BasePermission):
         return obj.author == request.user
 
 class FanFictionListCreate(generics.ListCreateAPIView):
-    queryset = FanFiction.objects.all()
+    queryset = FanFiction.objects.all().order_by("-created_at")
     serializer_class = FanFictionSerializer
-    pagination_class = FanFictionPagination #For pagination purposes
+    pagination_class = FanFictionPagination
+
+    # 🔥 THIS WAS MISSING
+    filter_backends = [SearchFilter]
+    search_fields = [
+        "title",
+        "summary",
+        "tags__name",
+    ]
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -336,15 +345,26 @@ class ChapterListCreate(generics.ListCreateAPIView):
         return [AllowAny()]
 
     def perform_create(self, serializer):
-        fanfic_id = self.kwargs["fanfic_id"]
-        fanfic = FanFiction.objects.get(id=fanfic_id)
+        fanfic = FanFiction.objects.get(id=self.kwargs["fanfic_id"])
 
-        # Enforce ownership
         if fanfic.author != self.request.user:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("You are not the author of this fanfiction.")
+            raise PermissionDenied("Not allowed")
 
-        serializer.save(fanfiction=fanfic)
+        last_chapter = (
+            Chapter.objects
+            .filter(fanfiction=fanfic)
+            .order_by("-chapter_number")
+            .first()
+        )
+
+        next_number = 1 if not last_chapter else last_chapter.chapter_number + 1
+
+        serializer.save(
+            fanfiction=fanfic,
+            chapter_number=next_number
+        )
+
 
 class ChapterDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Chapter.objects.all()

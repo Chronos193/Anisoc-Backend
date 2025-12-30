@@ -88,8 +88,8 @@ class FanFiction(models.Model):
     ]
 
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    front_page_url = models.URLField(blank=True, null=True)
-    title = models.CharField(max_length=200)
+    front_page_url = models.URLField(max_length=700, blank=True, null=True)
+    title = models.CharField(max_length=700)
     summary = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     tags = models.ManyToManyField(Tag, blank=True)

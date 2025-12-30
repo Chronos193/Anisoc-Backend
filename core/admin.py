@@ -43,7 +43,7 @@ class FanArtAdmin(admin.ModelAdmin):
     list_display = ("week", "artist", "artist_name", "created_at")
     search_fields = ("artist_name", "week")
 
-@admin.register(SeasonalReport)
+@admin.register(SeasonalReport)           
 class SeasonalReportAdmin(admin.ModelAdmin):
     list_display = ("title", "season", "published_at")
     search_fields = ("title", "season")

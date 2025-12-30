@@ -163,4 +163,7 @@ CSRF_TRUSTED_ORIGINS = [
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 
-
+#----------------------------For password Rest emails --------------------------------------
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@yourapp.com"
+#-------------------------------------------------------------------------------------
