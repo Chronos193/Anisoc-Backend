@@ -13,8 +13,12 @@ from .pagination import FanFictionPagination
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.filters import SearchFilter
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
-
+SECURE = os.getenv("SECURE", "False").lower() == "true"
+SAMESITE = os.getenv("SAMESITE")
 # Default permission class in global setting is IsAutheticated()
 
 # --------------------------------------------WARNING: THIS PART OF CODE IS FOR AUTH LOGIC AND VIEWS----------------------
@@ -43,9 +47,9 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="access_token",
             value=str(access),
             httponly=True,
-            secure=True,  # True in production (HTTPS)
-            samesite="None",
-            max_age=15 * 60,
+            secure=SECURE,  # True in production (HTTPS)
+            samesite=SAMESITE,
+            max_age=2 * 60,
         )
 
         # Refresh token (long-lived)
@@ -53,14 +57,19 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=True,  # True in production
-            samesite="None",
+            secure=SECURE,  # True in production
+            samesite=SAMESITE,
             max_age=7 * 24 * 60 * 60,
         )
 
         return response
 
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+
 class CookieTokenRefreshView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
 
@@ -73,9 +82,9 @@ class CookieTokenRefreshView(APIView):
         try:
             refresh = RefreshToken(refresh_token)
 
-            # Generate new tokens
+            # SimpleJWT rotation happens here
             new_access = refresh.access_token
-            new_refresh = refresh.rotate()
+            new_refresh = str(refresh)  # SAME object, rotated internally
 
         except TokenError:
             return Response(
@@ -83,33 +92,33 @@ class CookieTokenRefreshView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        response = Response({"detail": "Token refreshed"}, status=status.HTTP_200_OK)
+        response = Response({"detail": "Token refreshed"})
 
-        # Update access token cookie
         response.set_cookie(
-            key="access_token",
-            value=str(new_access),
+            "access_token",
+            str(new_access),
             httponly=True,
-            secure=True,   # True in production
-            samesite="None",
-            max_age=15 * 60,
+            secure=SECURE,
+            samesite=SAMESITE,
+            max_age=2 * 60,
         )
 
-        # Update refresh token cookie (ROTATION)
         response.set_cookie(
-            key="refresh_token",
-            value=str(new_refresh),
+            "refresh_token",
+            new_refresh,
             httponly=True,
-            secure=True,   # True in production
-            samesite="None",
+            secure=SECURE,
+            samesite=SAMESITE,
             max_age=7 * 24 * 60 * 60,
         )
 
         return response
 
 
+
 @method_decorator(csrf_exempt, name="dispatch")
 class LogoutView(APIView):
+    authentication_classes = []  
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -122,8 +131,8 @@ class LogoutView(APIView):
                 pass
 
         response = Response({"detail": "Logged out"}, status=200)
-        response.delete_cookie("access_token", path="/", samesite="None")
-        response.delete_cookie("refresh_token", path="/", samesite="None")
+        response.delete_cookie("access_token", path="/", samesite=SAMESITE)
+        response.delete_cookie("refresh_token", path="/", samesite=SAMESITE)
         return response
 
 
