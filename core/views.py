@@ -49,7 +49,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             httponly=True,
             secure=SECURE,  # True in production (HTTPS)
             samesite=SAMESITE,
-            max_age=2 * 60,
+            max_age=30 * 60,
         )
 
         # Refresh token (long-lived)
@@ -100,7 +100,7 @@ class CookieTokenRefreshView(APIView):
             httponly=True,
             secure=SECURE,
             samesite=SAMESITE,
-            max_age=2 * 60,
+            max_age=30 * 60,
         )
 
         response.set_cookie(
