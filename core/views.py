@@ -18,7 +18,7 @@ import os
 load_dotenv()
 
 SECURE = os.getenv("SECURE", "False").lower() == "true"
-SAMESITE = os.getenv("SAMESITE")
+SAMESITE = os.getenv("SAMESITE", "Lax")
 # Default permission class in global setting is IsAutheticated()
 
 # --------------------------------------------WARNING: THIS PART OF CODE IS FOR AUTH LOGIC AND VIEWS----------------------

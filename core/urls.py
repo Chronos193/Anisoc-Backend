@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 from .views import (
     CookieTokenObtainPairView,
     CookieTokenRefreshView,
@@ -26,6 +26,8 @@ from .views import (
     CommentDetail,
     MeView
 )
+from django.contrib.auth import views as auth_views
+
 
 app_name = "core"
 
@@ -54,7 +56,44 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="me"),
 
 
-#-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------For Password Reset------------------------------------------------------------------
+
+    path(
+        "auth/password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name = "core/registration/password_reset.html",
+            email_template_name="core/registration/password_reset_email.html",
+            # Optional: Ensure the success url also respects the namespace
+            success_url="/core/auth/password-reset/done/"
+        ),
+        name="password_reset"
+    ),
+
+
+    path(
+        "auth/password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="core/registration/password_reset_done.html"
+        ),
+        name="password_reset_done"
+    ),
+    path(
+        "auth/password-reset-confirm/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="core/registration/password_reset_confirm.html",
+            success_url=reverse_lazy("core:password_reset_complete")
+        ),
+        name="password_reset_confirm"
+    ),
+    path(
+        "auth/password-reset/complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="core/registration/password_reset_complete.html"
+        ),
+        name="password_reset_complete"
+    ),
+
+#-------------------------------------------------------------------------------------------------------------------
     # Team members
     path(
         "team-members/",
@@ -177,36 +216,3 @@ urlpatterns = [
 
 ]
 
-# ------------------------------------------------------Urls for Password Reset------------------------------------
-from django.contrib.auth import views as auth_views
-
-urlpatterns += [
-    # Request password reset (email input)
-    path(
-        "auth/password-reset/",
-        auth_views.PasswordResetView.as_view(),
-        name="password_reset"
-    ),
-
-    # Email sent confirmation
-    path(
-        "auth/password-reset/done/",
-        auth_views.PasswordResetDoneView.as_view(),
-        name="password_reset_done"
-    ),
-
-    # Reset link from email
-    path(
-        "auth/reset/<uidb64>/<token>/",
-        auth_views.PasswordResetConfirmView.as_view(),
-        name="password_reset_confirm"
-    ),
-
-    # Password reset complete
-    path(
-        "auth/reset/done/",
-        auth_views.PasswordResetCompleteView.as_view(),
-        name="password_reset_complete"
-    ),
-]
-# ---------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,1 @@
+web: gunicorn anisoc_backend.wsgi
