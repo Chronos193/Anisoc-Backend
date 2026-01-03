@@ -14,7 +14,7 @@ from .models import (
     Chapter,
     Comment,
 )
-
+from django.core import exceptions as django_exceptions
 # ------------------------------------------ WARNING: THIS PART OF CODE IS FOR AUTH ACCESS-----------------------------
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,15 +25,23 @@ class UserSerializer(serializers.ModelSerializer):
             "email": {"required": True},
         }
 
+    # 1. ADD THIS METHOD
+    def validate_password(self, value):
+        # This runs during the "Validation" phase.
+        # If it fails, DRF catches it and sends a nice error message to the user.
+        try:
+            validate_password(value)
+        except django_exceptions.ValidationError as e:
+            # Convert Django error to DRF error
+            raise serializers.ValidationError(e.messages)
+        return value
+
+    # 2. CLEAN UP THE CREATE METHOD
     def create(self, validated_data):
         password = validated_data.pop("password")
-        validate_password(password)
+        # No need to validate here anymore, it's already done!
         user = User.objects.create_user(password=password, **validated_data)
         return user
-    
-class CookieTokenObtainPairSerializer(TokenObtainPairSerializer):
-    pass
-
 #----------------------------------------------------------------------------------------------------------------------
 
 
