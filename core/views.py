@@ -13,6 +13,7 @@ from .pagination import FanFictionPagination
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.filters import SearchFilter
+from rest_framework.throttling import ScopedRateThrottle
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -26,6 +27,9 @@ class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+    # ---> ADD THESE TWO LINES <---
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'signup'  # Matches the 'signup' key in settings.py
 
 class CookieTokenObtainPairView(TokenObtainPairView):
     serializer_class = CookieTokenObtainPairSerializer

@@ -39,6 +39,18 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # 1. Add Throttling Classes
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',  # For guests (not logged in)
+        'rest_framework.throttling.UserRateThrottle'   # For logged-in users
+    ],
+
+    # 2. Set the Rates
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '150/hour',      # Guests: 150 requests per hour
+        'user': '1000/hour',     # Users: 1000 requests per hour
+        'signup': '5/minute',    # Custom Scope: strict limit for creating accounts!
+    }
 }
 
 SIMPLE_JWT = {
