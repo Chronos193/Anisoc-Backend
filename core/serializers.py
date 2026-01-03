@@ -42,6 +42,10 @@ class UserSerializer(serializers.ModelSerializer):
         # No need to validate here anymore, it's already done!
         user = User.objects.create_user(password=password, **validated_data)
         return user
+    
+class CookieTokenObtainPairSerializer(TokenObtainPairSerializer):
+    pass
+
 #----------------------------------------------------------------------------------------------------------------------
 
 
