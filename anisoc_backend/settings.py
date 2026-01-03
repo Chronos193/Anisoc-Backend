@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'anymail'
 ]
 
 MIDDLEWARE = [
@@ -179,16 +180,18 @@ CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 SESSION_COOKIE_SAMESITE = 'None' if SECURE_SSL_REDIRECT else 'Lax'
 CSRF_COOKIE_SAMESITE = 'None' if SECURE_SSL_REDIRECT else 'Lax'
 #----------------------------For password Reset emails --------------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = os.getenv("EMAIL_USER")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = os.getenv("GOOGLE_APP_PASS")
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+
+ANYMAIL = {
+    "BREVO_API_KEY": os.getenv("BREVO_API_KEY"),
+}
+
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_USER", "noreply@yourdomain.com")
+SERVER_EMAIL = os.getenv("EMAIL_USER", "noreply@yourdomain.com")
+
 #EMAIL_FILE_PATH = BASE_DIR / "emails"
 #DEFAULT_FROM_EMAIL = "noreply@yourapp.com"
-PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hours
+PASSWORD_RESET_TIMEOUT = 20 * 60  # 20 minutes
 #-------------------------------------------------------------------------------------
 
 
